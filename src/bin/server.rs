@@ -1,21 +1,23 @@
 use std::{
-    io::{Read, Write},
+    io::Read,
     net::{TcpListener, TcpStream},
 };
 
-fn handle_connection(mut s: TcpStream) {
-    loop {
-        let mut buf = [0; 1024];
+use radiant::{parse_message, write_message};
 
-        match s.read(&mut buf) {
+fn handle_connection(mut stream: TcpStream) {
+    loop {
+        let mut data = vec![0; 4 + 4096];
+
+        match stream.read(&mut data) {
             Ok(0) => {
                 println!("Client disconnected");
                 break;
             }
-            Ok(b) => {
-                let msg = String::from_utf8(buf[..b].to_vec()).unwrap();
+            Ok(_) => {
+                let msg = parse_message(data.as_slice()).unwrap();
                 println!("Client says: {msg}");
-                s.write_all(b"world").unwrap();
+                write_message(&mut stream, "world").unwrap();
             }
             Err(e) => {
                 eprintln!("{e}");

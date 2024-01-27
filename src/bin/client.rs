@@ -1,14 +1,15 @@
-use std::{
-    io::{Read, Write},
-    net::TcpStream,
-};
+use std::{io::Read, net::TcpStream};
+
+use radiant::{parse_message, write_message};
 
 fn query(stream: &mut TcpStream, msg: &str) {
-    stream.write_all(msg.as_bytes()).unwrap();
+    write_message(stream, msg).unwrap();
 
-    let mut buf = [0; 1024];
-    let b = stream.read(&mut buf).unwrap();
-    let msg = String::from_utf8(buf[..b].to_vec()).unwrap();
+    let mut data = vec![0; 4 + 4096];
+    // TODO: Do something with the read amount (advice from clippy)
+    let _ = stream.read(&mut data).unwrap();
+
+    let msg = parse_message(data.as_slice()).unwrap();
 
     println!("Server says: {msg}");
 }
