@@ -1,45 +1,29 @@
-use std::net::{TcpListener, TcpStream};
+use radiant::Connection;
+use tokio::net::{TcpListener, TcpStream};
 
-use radiant::connection_handler::ConnectionHandler;
+async fn handle_connection(stream: TcpStream) -> radiant::Result<()> {
+    let mut handler = Connection::new(stream);
+    handler.process().await?;
 
-fn handle_connection(stream: TcpStream) {
-    let peer_addr = stream.peer_addr().unwrap();
-    println!("Incoming connection: {}", peer_addr);
+    Ok(())
+}
 
-    let mut handler = ConnectionHandler::new(stream);
+#[tokio::main]
+async fn main() {
+    let listener = TcpListener::bind("127.0.0.1:3000").await.unwrap();
 
     loop {
-        match handler.read_frame() {
-            Ok(Some(frame)) => {
-                println!("Client says: {frame}");
-                if let Err(e) = handler.send_message("world") {
-                    eprintln!("{e}");
-                    continue;
-                }
-            }
-            Ok(None) => {
-                println!("Client {} disconnected", peer_addr);
-                break;
-            }
-            Err(radiant::RadiantError::NetworkError(_)) => {
-                eprintln!("Connection reset by peer");
-                break;
+        match listener.accept().await {
+            Ok((stream, _)) => {
+                tokio::spawn(async move {
+                    if let Err(e) = handle_connection(stream).await {
+                        eprintln!("{e}");
+                    }
+                });
             }
             Err(e) => {
                 eprintln!("{e}");
-                continue;
             }
         }
-    }
-}
-
-fn main() {
-    let listener = TcpListener::bind("127.0.0.1:3000").unwrap();
-
-    for stream in listener.incoming() {
-        match stream {
-            Ok(stream) => handle_connection(stream),
-            Err(e) => eprintln!("{e}"),
-        };
     }
 }

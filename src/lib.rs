@@ -1,10 +1,11 @@
-pub mod connection_handler;
+pub mod connection;
+pub use connection::Connection;
 
-pub mod frame;
-use frame::FrameError;
+mod frame;
+use frame::{Frame, FrameError};
 
 pub const HEADER_SIZE: usize = 4;
-pub const MAX_MESSAGE_LENGTH: usize = 4096; // 4MB
+pub const MAX_MESSAGE_LENGTH: usize = 4096;
 
 pub type Result<T> = std::result::Result<T, RadiantError>;
 
