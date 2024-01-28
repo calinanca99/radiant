@@ -1,23 +1,29 @@
-use std::{
-    io::Read,
-    net::{TcpListener, TcpStream},
-};
+use std::net::{TcpListener, TcpStream};
 
-use radiant::{parse_message, write_message};
+use radiant::connection_handler::ConnectionHandler;
 
-fn handle_connection(mut stream: TcpStream) {
+fn handle_connection(stream: TcpStream) {
+    let peer_addr = stream.peer_addr().unwrap();
+    println!("Incoming connection: {}", peer_addr);
+
+    let mut handler = ConnectionHandler::new(stream);
+
     loop {
-        let mut data = vec![0; 4 + 4096];
-
-        match stream.read(&mut data) {
-            Ok(0) => {
-                println!("Client disconnected");
+        match handler.read_frame() {
+            Ok(Some(frame)) => {
+                println!("Client says: {frame}");
+                if let Err(e) = handler.send_message("world") {
+                    eprintln!("{e}");
+                    continue;
+                }
+            }
+            Ok(None) => {
+                println!("Client {} disconnected", peer_addr);
                 break;
             }
-            Ok(_) => {
-                let msg = parse_message(data.as_slice()).unwrap();
-                println!("Client says: {msg}");
-                write_message(&mut stream, "world").unwrap();
+            Err(radiant::RadiantError::NetworkError(_)) => {
+                eprintln!("Connection reset by peer");
+                break;
             }
             Err(e) => {
                 eprintln!("{e}");
