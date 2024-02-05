@@ -2,18 +2,12 @@ use std::{fmt::Display, io::Cursor};
 
 use bytes::Buf;
 
-use crate::MAX_MESSAGE_LENGTH;
-
 #[derive(Debug)]
 pub struct Frame(String);
 
 impl Frame {
     pub fn check(buf: &mut Cursor<&[u8]>) -> Result<(), FrameError> {
         let length = get_u32(buf)? as usize;
-
-        if length > MAX_MESSAGE_LENGTH {
-            return Err(FrameError::TooLarge);
-        }
 
         if buf.remaining() < length {
             Err(FrameError::Incomplete)
@@ -34,12 +28,8 @@ impl Frame {
 
         match String::from_utf8(dst) {
             Ok(s) => Ok(Frame(s)),
-            Err(_) => Err(FrameError::Parse),
+            Err(e) => Err(FrameError::Parse(e.to_string())),
         }
-    }
-
-    pub fn into(self) -> String {
-        self.0
     }
 
     pub fn inner(&self) -> &str {
@@ -65,8 +55,6 @@ fn get_u32(src: &mut Cursor<&[u8]>) -> Result<u32, FrameError> {
 pub enum FrameError {
     #[error("insufficient data")]
     Incomplete,
-    #[error("cannot parse frame")]
-    Parse,
-    #[error("message is too large")]
-    TooLarge,
+    #[error("{0}")]
+    Parse(String),
 }

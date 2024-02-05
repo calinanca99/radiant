@@ -6,7 +6,7 @@ use tokio::{
     net::TcpStream,
 };
 
-use crate::{Frame, FrameError, RadiantError, HEADER_SIZE, MAX_MESSAGE_LENGTH};
+use crate::{Frame, FrameError, RadiantError, Request, Response, DEFAULT_CAPACITY, HEADER_SIZE};
 
 pub struct Connection {
     stream: TcpStream,
@@ -17,7 +17,7 @@ impl Connection {
     pub fn new(stream: TcpStream) -> Self {
         Self {
             stream,
-            buffer: BytesMut::with_capacity(HEADER_SIZE + MAX_MESSAGE_LENGTH),
+            buffer: BytesMut::with_capacity(HEADER_SIZE + DEFAULT_CAPACITY),
         }
     }
 
@@ -45,7 +45,9 @@ impl Connection {
                 }
             };
 
-            if let Err(e) = self.process_frame(&frame).await {
+            // TODO: `match` and send `Response::Error`
+            let command = Request::from_frame(&frame)?;
+            if let Err(e) = self.process_command(&command).await {
                 eprintln!("{e}");
                 continue;
             }
@@ -94,11 +96,20 @@ impl Connection {
         }
     }
 
-    async fn process_frame(&mut self, frame: &Frame) -> crate::Result<()> {
-        if frame.inner().contains("PING") {
-            self.send_message("+PONG\r\n").await?
-        } else {
-            self.send_message("world").await?
+    async fn process_command(&mut self, command: &Request) -> crate::Result<()> {
+        match command {
+            Request::Ping => {
+                let msg = Response::Pong.to_string()?;
+                self.send_message(&msg).await?
+            }
+            Request::Get(_) => {
+                let msg = Response::Error("Not implemented".to_string()).to_string()?;
+                self.send_message(&msg).await?
+            }
+            Request::Set(_, _) => {
+                let msg = Response::Error("Not implemented".to_string()).to_string()?;
+                self.send_message(&msg).await?
+            }
         }
 
         Ok(())
@@ -106,9 +117,6 @@ impl Connection {
 
     async fn send_message(&mut self, msg: &str) -> crate::Result<()> {
         let len = msg.len();
-        if len > MAX_MESSAGE_LENGTH {
-            return Err(RadiantError::MessageLimit);
-        }
 
         let mut write_buf = BytesMut::with_capacity(HEADER_SIZE + len);
 

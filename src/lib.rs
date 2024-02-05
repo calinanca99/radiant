@@ -4,8 +4,11 @@ pub use connection::Connection;
 mod frame;
 use frame::{Frame, FrameError};
 
+pub mod protocol;
+pub use protocol::{Request, Response};
+
 pub const HEADER_SIZE: usize = 4;
-pub const MAX_MESSAGE_LENGTH: usize = 4096;
+pub const DEFAULT_CAPACITY: usize = 1024;
 
 pub type Result<T> = std::result::Result<T, RadiantError>;
 
@@ -15,10 +18,8 @@ pub enum RadiantError {
     IOError(String),
     #[error("network error: {0}")]
     NetworkError(String),
-    #[error("message length must be lower than {} bytes", MAX_MESSAGE_LENGTH)]
-    MessageLimit,
-    #[error("cannot parse message")]
-    ParseError,
+    #[error("parsing error: {0}")]
+    ParseError(String),
     #[error("other error")]
     Other,
 }
@@ -27,8 +28,7 @@ impl From<FrameError> for RadiantError {
     fn from(value: FrameError) -> Self {
         match value {
             FrameError::Incomplete => Self::Other,
-            FrameError::Parse => Self::ParseError,
-            FrameError::TooLarge => Self::MessageLimit,
+            FrameError::Parse(e) => Self::ParseError(e),
         }
     }
 }
@@ -36,5 +36,11 @@ impl From<FrameError> for RadiantError {
 impl From<std::io::Error> for RadiantError {
     fn from(value: std::io::Error) -> Self {
         Self::IOError(value.to_string())
+    }
+}
+
+impl From<serde_json::Error> for RadiantError {
+    fn from(value: serde_json::Error) -> Self {
+        Self::ParseError(value.to_string())
     }
 }

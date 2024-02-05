@@ -4,13 +4,10 @@ use std::{
 };
 
 use bytes::{Buf, BufMut, Bytes, BytesMut};
-use radiant::{RadiantError, HEADER_SIZE, MAX_MESSAGE_LENGTH};
+use radiant::{RadiantError, Request, Response, DEFAULT_CAPACITY, HEADER_SIZE};
 
 fn write_message(stream: &mut TcpStream, msg: &str) -> radiant::Result<()> {
     let len = msg.len();
-    if len > MAX_MESSAGE_LENGTH {
-        return Err(RadiantError::MessageLimit);
-    }
 
     let mut write_buf = BytesMut::with_capacity(HEADER_SIZE + len);
 
@@ -23,12 +20,9 @@ fn write_message(stream: &mut TcpStream, msg: &str) -> radiant::Result<()> {
     }
 }
 
-fn parse_message(data: &[u8]) -> radiant::Result<String> {
+fn parse_message(data: &[u8]) -> radiant::Result<Response> {
     let mut read_buf = Bytes::copy_from_slice(data);
     let len = read_buf.get_u32() as usize;
-    if len > MAX_MESSAGE_LENGTH {
-        return Err(RadiantError::MessageLimit);
-    }
 
     // TODO: Check `read_buf`.remaining() > `length`
     // If that's not the case then issue another `read` from the socket
@@ -39,25 +33,31 @@ fn parse_message(data: &[u8]) -> radiant::Result<String> {
     let message_bytes = read_buf.copy_to_bytes(len);
 
     match String::from_utf8(message_bytes.to_vec()) {
-        Ok(s) => Ok(s),
-        Err(_) => Err(RadiantError::ParseError),
+        Ok(s) => Ok(Response::from_str(s.as_str())?),
+        Err(e) => Err(RadiantError::ParseError(e.to_string())),
     }
 }
 
-fn query(stream: &mut TcpStream, msg: &str) {
+fn query(stream: &mut TcpStream, msg: &str) -> Response {
     write_message(stream, msg).unwrap();
 
-    let mut data = vec![0; 4 + 4096];
+    let mut data = vec![0; HEADER_SIZE + DEFAULT_CAPACITY];
     // TODO: Do something with the read amount (advice from clippy)
     let _ = stream.read(&mut data).unwrap();
 
-    let msg = parse_message(data.as_slice()).unwrap();
-
-    println!("Server says: {msg}");
+    parse_message(data.as_slice()).unwrap()
 }
 
 fn main() {
     let mut stream = TcpStream::connect("127.0.0.1:3000").unwrap();
 
-    query(&mut stream, "+PING\r\n");
+    let req = Request::Ping;
+    println!("Sending: {:?}", req);
+    let res = query(&mut stream, req.to_string().unwrap().as_str());
+    println!("Server says: {:?}", res);
+
+    let req = Request::Get("foo".to_string());
+    println!("Sending: {:?}", req);
+    let res = query(&mut stream, req.to_string().unwrap().as_str());
+    println!("Server says: {:?}", res);
 }
