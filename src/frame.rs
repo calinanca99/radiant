@@ -41,6 +41,10 @@ impl Frame {
     pub fn into(self) -> String {
         self.0
     }
+
+    pub fn inner(&self) -> &str {
+        &self.0
+    }
 }
 
 impl Display for Frame {

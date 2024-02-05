@@ -29,14 +29,8 @@ impl Connection {
         println!("Incoming connection: {}", peer_addr);
 
         loop {
-            match self.read_frame().await {
-                Ok(Some(frame)) => {
-                    println!("Client says: {frame}");
-                    if let Err(e) = self.send_message("world").await {
-                        eprintln!("{e}");
-                        continue;
-                    }
-                }
+            let frame = match self.read_frame().await {
+                Ok(Some(frame)) => frame,
                 Ok(None) => {
                     println!("Client {} disconnected", peer_addr);
                     break;
@@ -49,6 +43,11 @@ impl Connection {
                     eprintln!("{e}");
                     continue;
                 }
+            };
+
+            if let Err(e) = self.process_frame(&frame).await {
+                eprintln!("{e}");
+                continue;
             }
         }
 
@@ -93,6 +92,16 @@ impl Connection {
             Err(FrameError::Incomplete) => Ok(None),
             Err(e) => Err(e.into()),
         }
+    }
+
+    async fn process_frame(&mut self, frame: &Frame) -> crate::Result<()> {
+        if frame.inner().contains("PING") {
+            self.send_message("+PONG\r\n").await?
+        } else {
+            self.send_message("world").await?
+        }
+
+        Ok(())
     }
 
     async fn send_message(&mut self, msg: &str) -> crate::Result<()> {

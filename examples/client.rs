@@ -59,7 +59,5 @@ fn query(stream: &mut TcpStream, msg: &str) {
 fn main() {
     let mut stream = TcpStream::connect("127.0.0.1:3000").unwrap();
 
-    query(&mut stream, "hello1");
-    query(&mut stream, "hello2");
-    query(&mut stream, "hello3");
+    query(&mut stream, "+PING\r\n");
 }
