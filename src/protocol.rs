@@ -18,7 +18,7 @@ pub enum Response {
 }
 
 impl Request {
-    pub fn from_frame(frame: &Frame) -> crate::Result<Self> {
+    pub fn from_frame(frame: Frame) -> crate::Result<Self> {
         Ok(serde_json::from_str::<Request>(frame.inner())?)
     }
 

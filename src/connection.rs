@@ -50,7 +50,7 @@ impl Connection {
             };
 
             // TODO: `match` and send `Response::Error`
-            let command = Request::from_frame(&frame)?;
+            let command = Request::from_frame(frame)?;
             if let Err(e) = self.process_command(command).await {
                 eprintln!("{e}");
                 continue;
