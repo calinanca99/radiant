@@ -56,6 +56,11 @@ fn main() {
     let res = query(&mut stream, req.to_string().unwrap().as_str());
     println!("Server says: {:?}", res);
 
+    let req = Request::Set("foo".to_string(), "bar".as_bytes().to_vec());
+    println!("Sending: {:?}", req);
+    let res = query(&mut stream, req.to_string().unwrap().as_str());
+    println!("Server says: {:?}", res);
+
     let req = Request::Get("foo".to_string());
     println!("Sending: {:?}", req);
     let res = query(&mut stream, req.to_string().unwrap().as_str());

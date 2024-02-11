@@ -7,6 +7,9 @@ use frame::{Frame, FrameError};
 pub mod protocol;
 pub use protocol::{Request, Response};
 
+mod db;
+pub use db::Db;
+
 pub const HEADER_SIZE: usize = 4;
 pub const DEFAULT_CAPACITY: usize = 1024;
 

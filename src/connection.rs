@@ -1,23 +1,27 @@
 use std::io::Cursor;
 
-use bytes::{Buf, BufMut, BytesMut};
+use bytes::{Buf, BufMut, Bytes, BytesMut};
 use tokio::{
     io::{AsyncReadExt, AsyncWriteExt},
     net::TcpStream,
 };
 
-use crate::{Frame, FrameError, RadiantError, Request, Response, DEFAULT_CAPACITY, HEADER_SIZE};
+use crate::{
+    Db, Frame, FrameError, RadiantError, Request, Response, DEFAULT_CAPACITY, HEADER_SIZE,
+};
 
 pub struct Connection {
     stream: TcpStream,
     buffer: BytesMut,
+    db: Db,
 }
 
 impl Connection {
-    pub fn new(stream: TcpStream) -> Self {
+    pub fn new(stream: TcpStream, db: Db) -> Self {
         Self {
             stream,
             buffer: BytesMut::with_capacity(HEADER_SIZE + DEFAULT_CAPACITY),
+            db,
         }
     }
 
@@ -47,7 +51,7 @@ impl Connection {
 
             // TODO: `match` and send `Response::Error`
             let command = Request::from_frame(&frame)?;
-            if let Err(e) = self.process_command(&command).await {
+            if let Err(e) = self.process_command(command).await {
                 eprintln!("{e}");
                 continue;
             }
@@ -96,18 +100,25 @@ impl Connection {
         }
     }
 
-    async fn process_command(&mut self, command: &Request) -> crate::Result<()> {
+    async fn process_command(&mut self, command: Request) -> crate::Result<()> {
         match command {
             Request::Ping => {
                 let msg = Response::Pong.to_string()?;
                 self.send_message(&msg).await?
             }
-            Request::Get(_) => {
-                let msg = Response::Error("Not implemented".to_string()).to_string()?;
+            Request::Get(key) => {
+                let value = match self.db.get(&key) {
+                    Some(v) => v.to_vec(),
+                    None => vec![],
+                };
+
+                let msg = Response::Get(key, value).to_string()?;
                 self.send_message(&msg).await?
             }
-            Request::Set(_, _) => {
-                let msg = Response::Error("Not implemented".to_string()).to_string()?;
+            Request::Set(key, value) => {
+                self.db.set(key, Bytes::from(value));
+
+                let msg = Response::Ok.to_string()?;
                 self.send_message(&msg).await?
             }
         }
