@@ -107,7 +107,7 @@ impl Connection {
                 self.send_message(&msg).await?
             }
             Request::Get(key) => {
-                let value = match self.db.get(&key) {
+                let value = match self.db.get(&key).await {
                     Some(v) => v.to_vec(),
                     None => vec![],
                 };
@@ -116,7 +116,7 @@ impl Connection {
                 self.send_message(&msg).await?
             }
             Request::Set(key, value) => {
-                self.db.set(key, Bytes::from(value));
+                self.db.set(key, Bytes::from(value)).await;
 
                 let msg = Response::Ok.to_string()?;
                 self.send_message(&msg).await?
