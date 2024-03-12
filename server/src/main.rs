@@ -1,7 +1,7 @@
-use radiant::{Connection, Db};
+use server::{Connection, Db};
 use tokio::net::{TcpListener, TcpStream};
 
-async fn handle_connection(stream: TcpStream, db: Db) -> radiant::Result<()> {
+async fn handle_connection(stream: TcpStream, db: Db) -> server::Result<()> {
     let mut handler = Connection::new(stream, db);
     handler.process().await?;
 

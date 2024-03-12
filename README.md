@@ -22,16 +22,19 @@ The following responses are sent:
 - Error(String)
 - Get(String, Bytes)
 
-## Up and running
-
-```bash
-cargo build --release
-./target/release/radiant
-```
-
 ## Examples
 
-- Rust client
+- Run the server
+
+```bash
+$ cargo run --bin server
+```
+
+- Run the "hello-world" example
+
+```bash
+$ cargo run --bin hello-world
+```
 
 ## Follow-up
 
