@@ -1,0 +1,10 @@
+syntax = "proto3";
+
+package messages;
+
+service Radiant {
+    rpc Ping (PingRequest) returns (PingResponse) {}
+}
+
+message PingRequest {};
+message PingResponse {};
