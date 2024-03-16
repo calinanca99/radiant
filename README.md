@@ -1,43 +1,34 @@
 # radiant
 
-`radiant` is an in-memory key-value store that was inspired by the ["Build your own Redis"](https://build-your-own.org/redis/) book and the [`mini-redis`](https://github.com/tokio-rs/mini-redis) project.
+`radiant` is an in-memory key-value store built in Rust.
 
 ## Protocol
 
-A frame has the following structure:
-
-- 4 bytes size header
-- JSON-encoded body for the command/response
-
-The following commands are supported:
-
-- Ping
-- Get(Key)
-- Set(Key, Bytes)
-
-The following responses are sent:
-
-- Pong
-- Ok
-- Error(String)
-- Get(String, Bytes)
+The communication is done through gRPC. Check out the `protocol` module to see the RPC and message definitions.
 
 ## Examples
 
-- Run the server
+1. Run the server
 
-```bash
-$ cargo run --bin server
-```
+   ```bash
+   $ cargo run --bin server
+   ```
 
-- Run the "hello-world" example
+1. Run the "simple-usage" example
 
-```bash
-$ cargo run --bin hello-world
-```
+   ```bash
+   $ cargo run --bin simple-usage
+   ```
 
 ## Follow-up
 
-- [ ] Expirations for keys
-- [ ] Persistance
-- [ ] (?) Replication
+### Features
+
+- [ ] Add expirations for keys
+- [ ] Add persistance and recovery
+- [ ] Add replication (based on one writer and multiple read copies)
+
+### DX
+
+- [ ] Add client Rust SDK
+- [ ] Add a client CLI
