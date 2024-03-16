@@ -1,12 +1,13 @@
 [package]
-name = "hello-world"
+name = "simple-usage"
 version = "0.1.0"
 edition = "2021"
 
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
 [dependencies]
-anyhow = "1.0.81"
-client = { path = "../../client" }
+bincode = "1.3"
+protocol = { path = "../../protocol" }
 serde.workspace = true
 tokio.workspace = true
+tonic.workspace = true

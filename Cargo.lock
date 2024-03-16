@@ -322,16 +322,6 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "95505c38b4572b2d910cecb0281560f54b440a19336cbbcb27bf6ce6adc6f5a8"
 
 [[package]]
-name = "hello-world"
-version = "0.1.0"
-dependencies = [
- "anyhow",
- "client",
- "serde",
- "tokio",
-]
-
-[[package]]
 name = "hermit-abi"
 version = "0.3.9"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -620,17 +610,6 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "8b870d8c151b6f2fb93e84a13146138f05d02ed11c7e7c54f8826aaaf7c9f184"
 
 [[package]]
-name = "ping-grpc"
-version = "0.1.0"
-dependencies = [
- "bincode",
- "protocol",
- "serde",
- "tokio",
- "tonic",
-]
-
-[[package]]
 name = "ppv-lite86"
 version = "0.2.17"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -884,6 +863,17 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "d8229b473baa5980ac72ef434c4415e70c4b5e71b423043adb4ba059f89c99a1"
 dependencies = [
  "libc",
+]
+
+[[package]]
+name = "simple-usage"
+version = "0.1.0"
+dependencies = [
+ "bincode",
+ "protocol",
+ "serde",
+ "tokio",
+ "tonic",
 ]
 
 [[package]]
