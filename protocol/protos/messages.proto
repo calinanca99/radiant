@@ -17,6 +17,11 @@ message Data {
     bytes data = 2;
 }
 
+message MaybeData {
+    optional Data data = 1;
+}
+
+
 message PingRequest {};
 message PingResponse {
     optional Error error = 1;
@@ -27,7 +32,7 @@ message GetRequest {
 };
 message GetResponse {
     oneof result {
-        Data data = 1;
+        MaybeData maybe_data = 1;
         Error error = 2;
     }
 };

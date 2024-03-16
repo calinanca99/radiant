@@ -1,11 +1,24 @@
 use protocol::{
+    get_response,
     radiant_server::{Radiant, RadiantServer},
-    GetRequest, GetResponse, PingRequest, PingResponse, SetRequest, SetResponse,
+    Data, GetRequest, GetResponse, MaybeData, PingRequest, PingResponse, SetRequest, SetResponse,
 };
+use server::Db;
+use tokio::sync::RwLock;
 use tonic::{transport::Server, Request, Response, Status};
 
-#[derive(Default)]
-pub struct RS {}
+#[derive(Debug)]
+pub struct RS {
+    db: RwLock<Db>,
+}
+
+impl RS {
+    fn new() -> Self {
+        Self {
+            db: RwLock::new(Db::new()),
+        }
+    }
+}
 
 #[tonic::async_trait]
 impl Radiant for RS {
@@ -15,18 +28,39 @@ impl Radiant for RS {
         Ok(Response::new(reply))
     }
 
-    async fn get(&self, _request: Request<GetRequest>) -> Result<Response<GetResponse>, Status> {
-        todo!()
+    async fn get(&self, request: Request<GetRequest>) -> Result<Response<GetResponse>, Status> {
+        let request = request.into_inner();
+        let db = self.db.read().await;
+        let data = db.get(&request.key).await;
+
+        let data = match data {
+            Some(d) => MaybeData {
+                data: Some(Data {
+                    key: request.key,
+                    data: d.to_vec(),
+                }),
+            },
+            None => MaybeData { data: None },
+        };
+        let result = get_response::Result::MaybeData(data);
+
+        Ok(Response::new(GetResponse {
+            result: Some(result),
+        }))
     }
 
-    async fn set(&self, _request: Request<SetRequest>) -> Result<Response<SetResponse>, Status> {
-        todo!()
+    async fn set(&self, request: Request<SetRequest>) -> Result<Response<SetResponse>, Status> {
+        let request = request.into_inner();
+        let mut db = self.db.write().await;
+        let _ = db.set(request.key, request.data.into()).await;
+
+        Ok(Response::new(SetResponse { error: None }))
     }
 }
 
 #[tokio::main]
 async fn main() {
-    let server = RS::default();
+    let server = RS::new();
     Server::builder()
         .add_service(RadiantServer::new(server))
         .serve("127.0.0.1:3000".parse().unwrap())
