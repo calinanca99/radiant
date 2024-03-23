@@ -16,36 +16,15 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
     println!("RESPONSE={:?}", response);
 
     // Set a value
-    // let customer = Customer {
-    //     id: "customer-1".to_string(),
-    //     age: 69,
-    // };
-    // let customer_bytes = bincode::serialize(&customer).unwrap();
-    // let request = tonic::Request::new(SetRequest {
-    //     key: customer.id.clone(),
-    //     data: customer_bytes,
-    // });
-    // let response = client.set(request).await?.into_inner();
-    // println!("RESPONSE={:?}", response);
+    let customer = Customer {
+        id: "customer-1".to_string(),
+        age: 69,
+    };
+    client.set(customer.id.clone(), &customer).await?;
 
     // Get a value
-    // let request = tonic::Request::new(GetRequest {
-    //     key: customer.id.clone(),
-    // });
-    // let response = client.get(request).await?.into_inner();
-    // println!("RESPONSE={:?}", response);
-
-    // match response.result.unwrap() {
-    //     protocol::get_response::Result::MaybeData(maybe_data) => {
-    //         let bytes = maybe_data.data.unwrap().data;
-    //         let fetched_customer: Customer = bincode::deserialize(&bytes).unwrap();
-
-    //         assert_eq!(fetched_customer, customer);
-    //     }
-    //     protocol::get_response::Result::Error(e) => {
-    //         eprintln!("{:?}", e)
-    //     }
-    // }
+    let fetched_customer = client.get::<Customer>(customer.id.clone()).await?.unwrap();
+    assert_eq!(fetched_customer, customer);
 
     Ok(())
 }

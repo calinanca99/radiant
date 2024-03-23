@@ -1,5 +1,32 @@
-use anyhow::{Context, Result};
-use protocol::{radiant_client::RadiantClient, PingRequest, PingResponse};
+use anyhow::{bail, Context, Result};
+use protocol::{radiant_client::RadiantClient, GetRequest, PingRequest, PingResponse, SetRequest};
+use serde::{Deserialize, Serialize};
+
+pub trait FromBytes {
+    fn from_bytes(b: &[u8]) -> Result<Self>
+    where
+        Self: Sized;
+}
+
+impl<T: for<'de> Deserialize<'de>> FromBytes for T {
+    fn from_bytes(b: &[u8]) -> Result<Self>
+    where
+        Self: Sized,
+    {
+        let t = bincode::deserialize(b)?;
+        Ok(t)
+    }
+}
+
+pub trait ToBytes {
+    fn to_bytes(&self) -> Result<Vec<u8>>;
+}
+
+impl<T: Serialize> ToBytes for T {
+    fn to_bytes(&self) -> Result<Vec<u8>> {
+        Ok(bincode::serialize(self)?)
+    }
+}
 
 pub struct Client {
     inner: RadiantClient<tonic::transport::Channel>,
@@ -19,19 +46,37 @@ impl Client {
         let response = self.inner.ping(request).await?.into_inner();
         Ok(response)
     }
-}
 
-pub fn add(left: usize, right: usize) -> usize {
-    left + right
-}
+    pub async fn get<T: FromBytes>(&mut self, key: String) -> Result<Option<T>> {
+        let request = tonic::Request::new(GetRequest { key });
+        let response = self.inner.get(request).await?.into_inner();
 
-#[cfg(test)]
-mod tests {
-    use super::*;
+        // It's not 100% clear when this will be None. According to prost docs
+        // "`oneof` fields are always wrapped in an `Option`".
+        // https://github.com/tokio-rs/prost?tab=readme-ov-file#oneof-fields
+        match response.result.unwrap() {
+            protocol::get_response::Result::MaybeData(maybe_data) => match maybe_data.data {
+                Some(d) => {
+                    let t: T = T::from_bytes(d.data.as_ref())?;
+                    Ok(Some(t))
+                }
+                None => Ok(None),
+            },
+            protocol::get_response::Result::Error(e) => {
+                bail!("Failed to get value: {}", e.reason)
+            }
+        }
+    }
 
-    #[test]
-    fn it_works() {
-        let result = add(2, 2);
-        assert_eq!(result, 4);
+    pub async fn set<T: ToBytes>(&mut self, key: String, value: T) -> Result<()> {
+        let data = value.to_bytes()?;
+        let request = tonic::Request::new(SetRequest { key, data });
+        let response = self.inner.set(request).await?.into_inner();
+
+        if let Some(e) = response.error {
+            bail!("Failed to set value: {}", e.reason)
+        } else {
+            Ok(())
+        }
     }
 }
