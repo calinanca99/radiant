@@ -13,6 +13,7 @@ pub struct Service {
 }
 
 impl Service {
+    #[allow(clippy::new_without_default)]
     pub fn new() -> Self {
         Self {
             db: RwLock::new(Db::new()),
