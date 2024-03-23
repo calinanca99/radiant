@@ -24,11 +24,13 @@ The communication is done through gRPC. Check out the `protocol` module to see t
 
 ### Features
 
+- [ ] Implement authentication
 - [ ] Add expirations for keys
 - [ ] Add persistance and recovery
 - [ ] Add replication (based on one writer and multiple read copies)
 
 ### DX
 
-- [ ] Add client Rust SDK
+- [x] Add client Rust SDK
 - [ ] Add a client CLI
+- [ ] Add Docker Image for the server
