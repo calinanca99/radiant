@@ -20,10 +20,10 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
         id: "customer-1".to_string(),
         age: 69,
     };
-    client.set(customer.id.clone(), &customer).await?;
+    client.set(&customer.id, &customer).await?;
 
     // Get a value
-    let fetched_customer = client.get::<Customer>(customer.id.clone()).await?.unwrap();
+    let fetched_customer = client.get::<Customer>(&customer.id).await?.unwrap();
     assert_eq!(fetched_customer, customer);
 
     Ok(())

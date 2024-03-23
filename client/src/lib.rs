@@ -47,8 +47,8 @@ impl Client {
         Ok(response)
     }
 
-    pub async fn get<T: FromBytes>(&mut self, key: String) -> Result<Option<T>> {
-        let request = tonic::Request::new(GetRequest { key });
+    pub async fn get<T: FromBytes>(&mut self, key: impl Into<String>) -> Result<Option<T>> {
+        let request = tonic::Request::new(GetRequest { key: key.into() });
         let response = self.inner.get(request).await?.into_inner();
 
         // It's not 100% clear when this will be None. According to prost docs
@@ -68,9 +68,12 @@ impl Client {
         }
     }
 
-    pub async fn set<T: ToBytes>(&mut self, key: String, value: T) -> Result<()> {
+    pub async fn set<T: ToBytes>(&mut self, key: impl Into<String>, value: T) -> Result<()> {
         let data = value.to_bytes()?;
-        let request = tonic::Request::new(SetRequest { key, data });
+        let request = tonic::Request::new(SetRequest {
+            key: key.into(),
+            data,
+        });
         let response = self.inner.set(request).await?.into_inner();
 
         if let Some(e) = response.error {
