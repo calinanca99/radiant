@@ -1,6 +1,6 @@
 [workspace]
 resolver = "2"
-members = ["server", "examples/*", "protocol"]
+members = ["server", "examples/*", "protocol", "client"]
 
 [workspace.dependencies]
 bytes = "1.5"
