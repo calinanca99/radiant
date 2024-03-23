@@ -1,6 +1,6 @@
 use anyhow::{bail, Context, Result};
 use protocol::{radiant_client::RadiantClient, GetRequest, PingRequest, PingResponse, SetRequest};
-use serde::{Deserialize, Serialize};
+use serde::{de::DeserializeOwned, Serialize};
 
 pub trait FromBytes {
     fn from_bytes(b: &[u8]) -> Result<Self>
@@ -8,13 +8,12 @@ pub trait FromBytes {
         Self: Sized;
 }
 
-impl<T: for<'de> Deserialize<'de>> FromBytes for T {
+impl<T: DeserializeOwned> FromBytes for T {
     fn from_bytes(b: &[u8]) -> Result<Self>
     where
         Self: Sized,
     {
-        let t = bincode::deserialize(b)?;
-        Ok(t)
+        Ok(bincode::deserialize(b)?)
     }
 }
 
