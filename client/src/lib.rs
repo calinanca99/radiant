@@ -1,5 +1,7 @@
 use anyhow::{bail, Context, Result};
-use protocol::{radiant_client::RadiantClient, GetRequest, PingRequest, PingResponse, SetRequest};
+use protocol::{
+    radiant_client::RadiantClient, DelRequest, GetRequest, PingRequest, PingResponse, SetRequest,
+};
 use serde::{de::DeserializeOwned, Serialize};
 
 pub trait FromBytes {
@@ -77,6 +79,17 @@ impl Client {
 
         if let Some(e) = response.error {
             bail!("Failed to set value: {}", e.reason)
+        } else {
+            Ok(())
+        }
+    }
+
+    pub async fn del(&mut self, key: impl Into<String>) -> Result<()> {
+        let request = tonic::Request::new(DelRequest { key: key.into() });
+        let response = self.inner.del(request).await?.into_inner();
+
+        if let Some(e) = response.error {
+            bail!("Failed to delete value: {}", e.reason)
         } else {
             Ok(())
         }

@@ -6,6 +6,7 @@ service Radiant {
     rpc Ping (PingRequest) returns (PingResponse) {}
     rpc Get (GetRequest) returns (GetResponse) {}
     rpc Set (SetRequest) returns (SetResponse) {}
+    rpc Del (DelRequest) returns (DelResponse) {}
 }
 
 message Error {
@@ -42,5 +43,12 @@ message SetRequest {
     bytes data = 2;
 };
 message SetResponse {
+    optional Error error = 1;
+};
+
+message DelRequest {
+    string key = 1;
+};
+message DelResponse {
     optional Error error = 1;
 };

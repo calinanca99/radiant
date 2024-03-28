@@ -15,11 +15,15 @@ impl Db {
         }
     }
 
-    pub async fn get(&self, k: &str) -> Option<Bytes> {
+    pub fn get(&self, k: &str) -> Option<Bytes> {
         self.entries.get(k).cloned()
     }
 
-    pub async fn set(&mut self, k: String, v: Bytes) {
+    pub fn set(&mut self, k: String, v: Bytes) {
         self.entries.insert(k, v);
+    }
+
+    pub fn del(&mut self, k: String) -> Option<()> {
+        self.entries.remove(k.as_str()).map(|_| ())
     }
 }

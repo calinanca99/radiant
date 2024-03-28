@@ -1,6 +1,6 @@
 use protocol::{
-    get_response, radiant_server::Radiant, Data, GetRequest, GetResponse, MaybeData, PingRequest,
-    PingResponse, SetRequest, SetResponse,
+    get_response, radiant_server::Radiant, Data, DelRequest, DelResponse, Error, GetRequest,
+    GetResponse, MaybeData, PingRequest, PingResponse, SetRequest, SetResponse,
 };
 use tokio::sync::RwLock;
 use tonic::{Request, Response, Status};
@@ -37,7 +37,7 @@ impl Radiant for Service {
     async fn get(&self, request: Request<GetRequest>) -> Result<Response<GetResponse>, Status> {
         let request = request.into_inner();
         let db = self.db.read().await;
-        let data = db.get(&request.key).await;
+        let data = db.get(&request.key);
 
         let data = match data {
             Some(d) => MaybeData {
@@ -58,8 +58,23 @@ impl Radiant for Service {
     async fn set(&self, request: Request<SetRequest>) -> Result<Response<SetResponse>, Status> {
         let request = request.into_inner();
         let mut db = self.db.write().await;
-        let _ = db.set(request.key, request.data.into()).await;
+        db.set(request.key, request.data.into());
 
         Ok(Response::new(SetResponse { error: None }))
+    }
+
+    async fn del(&self, request: Request<DelRequest>) -> Result<Response<DelResponse>, Status> {
+        let request = request.into_inner();
+        let mut db = self.db.write().await;
+
+        if db.del(request.key).is_some() {
+            Ok(Response::new(DelResponse { error: None }))
+        } else {
+            Ok(Response::new(DelResponse {
+                error: Some(Error {
+                    reason: "Key does not exist".to_string(),
+                }),
+            }))
+        }
     }
 }

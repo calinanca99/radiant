@@ -24,7 +24,16 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
 
     // Get a value
     let fetched_customer = client.get::<Customer>(&customer.id).await?.unwrap();
+    dbg!(&fetched_customer);
     assert_eq!(fetched_customer, customer);
+
+    // Delete a value
+    client.del(&customer.id).await?;
+    let fetched_customer = client.get::<Customer>(&customer.id).await?;
+    dbg!(&fetched_customer);
+
+    let res = client.del(&customer.id).await;
+    dbg!(&res);
 
     Ok(())
 }
