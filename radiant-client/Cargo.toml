@@ -1,5 +1,5 @@
 [package]
-name = "client"
+name = "radiant-client"
 version = "0.1.0"
 edition = "2021"
 
@@ -10,5 +10,5 @@ bincode.workspace = true
 serde.workspace = true
 tonic.workspace = true
 
-protocol = { path = "../protocol" }
+radiant-protocol = { path = "../radiant-protocol" }
 anyhow = "1.0"

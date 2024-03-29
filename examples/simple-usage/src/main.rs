@@ -1,4 +1,4 @@
-use client::Client;
+use radiant_client::Client;
 use serde::{Deserialize, Serialize};
 
 #[derive(Serialize, Deserialize, Clone, Debug, PartialEq)]

@@ -1,4 +1,4 @@
-use protocol::{
+use radiant_protocol::{
     get_response, radiant_server::Radiant, Data, DelRequest, DelResponse, Error, GetRequest,
     GetResponse, MaybeData, PingRequest, PingResponse, SetRequest, SetResponse,
 };

@@ -1,5 +1,5 @@
-use protocol::radiant_server::RadiantServer;
-use server::Service;
+use radiant_protocol::radiant_server::RadiantServer;
+use radiant_server::Service;
 use tonic::transport::Server;
 
 #[tokio::main]

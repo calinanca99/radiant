@@ -24,7 +24,7 @@ The communication is done through gRPC. Check out the `protocol` module to see t
 
 ### Features
 
-- [ ] Add "Delete" command
+- [x] Add "Delete" command
 - [ ] Add memory limit for and memory eviction policy
 - [ ] Implement authentication
 - [ ] Add/Enable TLS

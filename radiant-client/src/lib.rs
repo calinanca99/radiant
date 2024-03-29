@@ -1,5 +1,5 @@
 use anyhow::{bail, Context, Result};
-use protocol::{
+use radiant_protocol::{
     radiant_client::RadiantClient, DelRequest, GetRequest, PingRequest, PingResponse, SetRequest,
 };
 use serde::{de::DeserializeOwned, Serialize};
@@ -56,14 +56,16 @@ impl Client {
         // "`oneof` fields are always wrapped in an `Option`".
         // https://github.com/tokio-rs/prost?tab=readme-ov-file#oneof-fields
         match response.result.unwrap() {
-            protocol::get_response::Result::MaybeData(maybe_data) => match maybe_data.data {
-                Some(d) => {
-                    let t: T = T::from_bytes(d.data.as_ref())?;
-                    Ok(Some(t))
+            radiant_protocol::get_response::Result::MaybeData(maybe_data) => {
+                match maybe_data.data {
+                    Some(d) => {
+                        let t: T = T::from_bytes(d.data.as_ref())?;
+                        Ok(Some(t))
+                    }
+                    None => Ok(None),
                 }
-                None => Ok(None),
-            },
-            protocol::get_response::Result::Error(e) => {
+            }
+            radiant_protocol::get_response::Result::Error(e) => {
                 bail!("Failed to get value: {}", e.reason)
             }
         }

@@ -1,6 +1,6 @@
 [workspace]
 resolver = "2"
-members = ["server", "examples/*", "protocol", "client"]
+members = ["radiant-*", "examples/*"]
 
 [workspace.dependencies]
 bincode = "1.3"

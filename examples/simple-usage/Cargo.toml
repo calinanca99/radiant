@@ -6,8 +6,8 @@ edition = "2021"
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
 [dependencies]
-protocol = { path = "../../protocol" }
-client = { path = "../../client" }
+radiant-protocol = { path = "../../radiant-protocol" }
+radiant-client = { path = "../../radiant-client" }
 bincode.workspace = true
 serde.workspace = true
 tokio.workspace = true
