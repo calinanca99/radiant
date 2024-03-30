@@ -24,7 +24,6 @@ The communication is done through gRPC. Check out the `protocol` module to see t
 
 ### Features
 
-- [x] Add "Delete" command
 - [ ] Add memory limit for and memory eviction policy
 - [ ] Implement authentication
 - [ ] Add/Enable TLS
@@ -33,6 +32,4 @@ The communication is done through gRPC. Check out the `protocol` module to see t
 
 ### DX
 
-- [x] Add client Rust SDK
-- [ ] Add a client CLI
 - [ ] Add Docker Image for the server
